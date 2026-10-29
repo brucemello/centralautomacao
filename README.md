@@ -27,7 +27,7 @@ Secrets do repositório (Settings › Secrets and variables › Actions):
 ## Primeira execução
 
 1. Após o primeiro deploy, abra o editor do Apps Script e execute `setup()` uma vez.
-   Ele cria as abas **Usuarios**, **Favoritos** e **Log**, cadastra o dono como ADMIN e gera IDs para os recursos.
+   Ele cria as abas **Usuarios**, **Favoritos**, **Log** e **Solicitacoes**, autoriza o envio de e-mails, cadastra o dono como ADMIN e gera IDs para os recursos.
 2. Abra o portal › 🛠️ Administração e cadastre os líderes.
 
 ## Planilha (aba `Config`)
@@ -40,6 +40,15 @@ Secrets do repositório (Settings › Secrets and variables › Actions):
 | `ID Portal` | gerado automaticamente — não editar |
 
 As colunas `Acesso`, `Ativo (S/N)` e `ID Portal` são localizadas pelo nome e, se não existirem, criadas no fim da linha 1. Colunas extras já existentes (ex.: `Planilha`, `Versao 1`) não são alteradas.
+
+## Solicitações de acesso e convites
+
+- **Recurso restrito**: aparece no portal com 🔒 (o link nunca vai ao navegador) e botão **Solicitar acesso**.
+- **Sem acesso ao link**: o recurso está liberado no portal, mas o Drive/sistema pediu permissão → botão **Sem acesso?** no card.
+- **Sem cadastro**: a tela de acesso restrito tem **Solicitar acesso ao portal**.
+- Toda solicitação vai para a aba `Solicitacoes`, gera **e-mail para os administradores** e aparece em **Administração › Solicitações**, com aprovar/negar em um clique. O solicitante é avisado por e-mail.
+- Ao cadastrar um usuário, a opção **Enviar convite por e-mail** já vem marcada; o botão **✉ Convite** reenvia.
+- Ajustes em `Codigo.gs`: `MOSTRAR_BLOQUEADOS` (exibir cards restritos) e `NOTIFICAR_POR_EMAIL`.
 
 ## Perfis
 
