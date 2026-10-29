@@ -225,7 +225,7 @@ function emailsAdmins_() {
   return [...new Set([dono].concat(admins).filter(Boolean))];
 }
 
-function enviarEmail_(para, assunto, titulo, corpoHtml, botao) {
+function enviarEmail_(para, assunto, titulo, corpoHtml, botao, copia) {
   if (!NOTIFICAR_POR_EMAIL || !para) return;
   const url = urlPortal_();
   const html = `
@@ -241,7 +241,9 @@ function enviarEmail_(para, assunto, titulo, corpoHtml, botao) {
     </div>
   </div>`;
   try {
-    MailApp.sendEmail({ to: para, subject: assunto, htmlBody: html, name: 'Portal de Gestão' });
+    const msg = { to: para, subject: assunto, htmlBody: html, name: 'Portal de Gestão' };
+    if (copia && str_(copia).toLowerCase() !== str_(para).toLowerCase()) msg.cc = copia;
+    MailApp.sendEmail(msg);
   } catch (e) {
     console.error('Falha ao enviar e-mail: ' + e);
   }
@@ -271,7 +273,8 @@ function enviarConvite_(email, nome, perfil, admin) {
   const primeiro = esc_((nome || email).split(/[ @]/)[0]);
   const corpo = `Olá, ${primeiro}!<br><br><b>${esc_(admin.nome || admin.email)}</b> liberou seu acesso ao <b>Portal Executivo de Gestão</b> com o perfil <b>${esc_(perfil)}</b>.<br><br>`
     + 'Lá você encontra num só lugar os controles de liderança, indicadores, planilhas de gestão e automações do time. Entre com a sua conta Google corporativa e marque ☆ nos recursos que mais usa para criar seu acesso rápido.';
-  enviarEmail_(email, '🚀 Convite · Portal Executivo de Gestão', 'Você foi convidado para o portal', corpo, 'Acessar o portal');
+  // Quem convidou recebe cópia (Cc)
+  enviarEmail_(email, '🚀 Convite · Portal Executivo de Gestão', 'Você foi convidado para o portal', corpo, 'Acessar o portal', admin.email);
 }
 
 function adminReenviarConvite(email) {

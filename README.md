@@ -47,7 +47,7 @@ As colunas `Acesso`, `Ativo (S/N)` e `ID Portal` são localizadas pelo nome e, s
 - **Sem acesso ao link**: o recurso está liberado no portal, mas o Drive/sistema pediu permissão → botão **Sem acesso?** no card.
 - **Sem cadastro**: a tela de acesso restrito tem **Solicitar acesso ao portal**.
 - Toda solicitação vai para a aba `Solicitacoes`, gera **e-mail para os administradores** e aparece em **Administração › Solicitações**, com aprovar/negar em um clique. O solicitante é avisado por e-mail.
-- Ao cadastrar um usuário, a opção **Enviar convite por e-mail** já vem marcada; o botão **✉ Convite** reenvia.
+- Ao cadastrar um usuário, a opção **Enviar convite por e-mail** já vem marcada (quem convida recebe cópia em Cc); o botão **✉ Convite** reenvia.
 - Ajustes em `Codigo.gs`: `MOSTRAR_BLOQUEADOS` (exibir cards restritos) e `NOTIFICAR_POR_EMAIL`.
 
 ## Perfis
