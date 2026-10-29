@@ -371,7 +371,7 @@
     function toast(msg, tipo) {
       const t = $('#toast');
       t.textContent = msg; t.className = 'toast show' + (tipo === 'erro' ? ' erro' : '');
-      clearTimeout(t._h); t._h = setTimeout(() => t.className = 'toast', 3600);
+      clearTimeout(t._h); t._h = setTimeout(() => t.className = 'toast', tipo === 'erro' ? 9000 : 3600);
     }
     function contar(el, alvo) {
       if (!el) return;
@@ -682,7 +682,7 @@
               <thead><tr><th>Data</th><th>Usuário</th><th>Ação</th><th>Detalhe</th></tr></thead>
               <tbody>${A.log.slice(0, 120).map(l => `
                 <tr><td style="font-family:var(--mono);font-size:.76rem;white-space:nowrap">${esc(l.data)}</td><td>${esc(l.email)}</td>
-                <td><span class="tag ${l.acao === 'ACESSO_NEGADO' ? 'off' : l.acao === 'SOLICITOU_ACESSO' ? 'wait' : ''}">${esc(l.acao)}</span></td><td>${esc(l.detalhe)}</td></tr>`).join('')}</tbody>
+                <td><span class="tag ${/ACESSO_NEGADO|ERRO/.test(l.acao) ? 'off' : l.acao === 'SOLICITOU_ACESSO' ? 'wait' : ''}">${esc(l.acao)}</span></td><td>${esc(l.detalhe)}</td></tr>`).join('')}</tbody>
             </table></div>
           </div>
         </div>`;
@@ -782,7 +782,8 @@
         d.novo = !u;
         const res = await call('adminSalvarUsuario', d);
         await recarregarTudo();
-        toast(res && res.convite ? 'Usuário cadastrado e convite enviado ✉️' : 'Usuário salvo ✅');
+        if (res && res.erroEmail) toast('Usuário salvo, mas o convite NÃO foi enviado: ' + res.erroEmail, 'erro');
+        else toast(res && res.convite ? 'Usuário cadastrado e convite enviado ✉️' : 'Usuário salvo ✅');
       }, u ? 'Salvar' : 'Cadastrar');
     }
 

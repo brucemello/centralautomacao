@@ -226,7 +226,7 @@ function emailsAdmins_() {
 }
 
 function enviarEmail_(para, assunto, titulo, corpoHtml, botao, copia) {
-  if (!NOTIFICAR_POR_EMAIL || !para) return;
+  if (!NOTIFICAR_POR_EMAIL || !para) return { ok: false, erro: 'Envio de e-mails desativado.' };
   const url = urlPortal_();
   const html = `
   <div style="background:#070a1a;padding:28px 12px;font-family:Segoe UI,Arial,sans-serif">
@@ -244,9 +244,22 @@ function enviarEmail_(para, assunto, titulo, corpoHtml, botao, copia) {
     const msg = { to: para, subject: assunto, htmlBody: html, name: 'Portal de Gestão' };
     if (copia && str_(copia).toLowerCase() !== str_(para).toLowerCase()) msg.cc = copia;
     MailApp.sendEmail(msg);
+    return { ok: true };
   } catch (e) {
-    console.error('Falha ao enviar e-mail: ' + e);
+    const erro = traduzirErroEmail_(e);
+    console.error('Falha ao enviar e-mail para ' + para + ': ' + e);
+    registrarLog_(str_(Session.getActiveUser().getEmail()), 'ERRO_EMAIL', para + ' · ' + erro);
+    return { ok: false, erro };
   }
+}
+
+function traduzirErroEmail_(e) {
+  const m = String(e && e.message || e);
+  if (/permiss|authoriz|autoriza|scope/i.test(m)) {
+    return 'O script ainda não tem permissão para enviar e-mails. Abra o editor do Apps Script, execute a função setup() e aceite a permissão de envio de e-mail.';
+  }
+  if (/quota|cota|limit/i.test(m)) return 'Cota diária de e-mails do Google atingida. Tente novamente amanhã.';
+  return m;
 }
 
 function notificarAdmins_(s, recurso) {
@@ -274,14 +287,23 @@ function enviarConvite_(email, nome, perfil, admin) {
   const corpo = `Olá, ${primeiro}!<br><br><b>${esc_(admin.nome || admin.email)}</b> liberou seu acesso ao <b>Portal Executivo de Gestão</b> com o perfil <b>${esc_(perfil)}</b>.<br><br>`
     + 'Lá você encontra num só lugar os controles de liderança, indicadores, planilhas de gestão e automações do time. Entre com a sua conta Google corporativa e marque ☆ nos recursos que mais usa para criar seu acesso rápido.';
   // Quem convidou recebe cópia (Cc)
-  enviarEmail_(email, '🚀 Convite · Portal Executivo de Gestão', 'Você foi convidado para o portal', corpo, 'Acessar o portal', admin.email);
+  return enviarEmail_(email, '🚀 Convite · Portal Executivo de Gestão', 'Você foi convidado para o portal', corpo, 'Acessar o portal', admin.email);
+}
+
+/** Rode pelo editor para testar o envio: manda um e-mail de teste para você mesmo. */
+function testarEmail() {
+  const eu = Session.getEffectiveUser().getEmail();
+  Logger.log('Cota restante hoje: ' + MailApp.getRemainingDailyQuota());
+  MailApp.sendEmail(eu, 'Teste · Portal de Gestão', 'Se você recebeu este e-mail, o envio do portal está funcionando.');
+  Logger.log('E-mail de teste enviado para ' + eu);
 }
 
 function adminReenviarConvite(email) {
   const admin = exigirAdmin_();
   const u = lerUsuarios_().find(x => x.email === str_(email).toLowerCase());
   if (!u || !u.ativo) throw new Error('Usuário não encontrado ou inativo.');
-  enviarConvite_(u.email, u.nome, u.perfil, admin);
+  const r = enviarConvite_(u.email, u.nome, u.perfil, admin);
+  if (!r.ok) throw new Error('Convite não enviado: ' + r.erro);
   registrarLog_(admin.email, 'ADMIN_ENVIOU_CONVITE', u.email);
   return true;
 }
@@ -412,13 +434,13 @@ function adminSalvarUsuario(x) {
   gravarUsuario_({ email, nome: x.nome, perfil, grupos: x.grupos, ativo, novo: !!x.novo });
   registrarLog_(admin.email, 'ADMIN_SALVOU_USUARIO', email + ' → ' + perfil + (ativo ? '' : ' (inativo)'));
 
-  let convite = false;
+  let convite = false, erroEmail = '';
   if (x.convite && ativo) {
-    enviarConvite_(email, str_(x.nome), perfil, admin);
-    registrarLog_(admin.email, 'ADMIN_ENVIOU_CONVITE', email);
-    convite = true;
+    const r = enviarConvite_(email, str_(x.nome), perfil, admin);
+    if (r.ok) { registrarLog_(admin.email, 'ADMIN_ENVIOU_CONVITE', email); convite = true; }
+    else erroEmail = r.erro;
   }
-  return { ok: true, convite };
+  return { ok: true, convite, erroEmail };
 }
 
 function gravarUsuario_(x) {
