@@ -1,0 +1,52 @@
+name: Deploy Apps Script
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - ".github/workflows/deploy.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-apps-script
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Instalar clasp
+        run: npm install -g @google/clasp@2.4.2
+
+      - name: Configurar credenciais
+        env:
+          CLASPRC_JSON: ${{ secrets.CLASPRC_JSON }}
+          SCRIPT_ID: ${{ secrets.SCRIPT_ID }}
+        run: |
+          if [ -z "$CLASPRC_JSON" ] || [ -z "$SCRIPT_ID" ]; then
+            echo "::error::Secrets CLASPRC_JSON e SCRIPT_ID são obrigatórios."; exit 1
+          fi
+          printf '%s' "$CLASPRC_JSON" > ~/.clasprc.json
+          printf '{"scriptId":"%s","rootDir":"src"}' "$SCRIPT_ID" > .clasp.json
+
+      - name: Enviar código (clasp push)
+        run: clasp push --force
+
+      - name: Atualizar implantação do Web App
+        env:
+          DEPLOYMENT_ID: ${{ secrets.DEPLOYMENT_ID }}
+        run: |
+          DESC="v3 - ${GITHUB_SHA::7} - $(date -u +%Y-%m-%dT%H:%MZ)"
+          if [ -n "$DEPLOYMENT_ID" ]; then
+            clasp deploy --deploymentId "$DEPLOYMENT_ID" --description "$DESC"
+          else
+            echo "::warning::DEPLOYMENT_ID não definido; criando nova implantação."
+            clasp deploy --description "$DESC"
+          fi

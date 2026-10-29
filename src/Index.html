@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <base target="_top">
+  <meta charset="UTF-8" />
+  <title>Portal de Gestão e Automações</title>
+  <style>
+    :root {
+      --bg: #0f172a; --bg-soft: #111827;
+      --card: rgba(255,255,255,0.08); --card-border: rgba(255,255,255,0.14);
+      --text: #f8fafc; --muted: #cbd5e1;
+      --primary: #10b981; --primary-dark: #059669; --accent: #38bdf8; --gold: #facc15; --danger: #f87171;
+      --shadow: rgba(0,0,0,0.35); --input: rgba(15,23,42,0.55);
+    }
+    body.light {
+      --bg: #f8fafc; --bg-soft: #eef2f7;
+      --card: rgba(255,255,255,0.92); --card-border: rgba(15,23,42,0.08);
+      --text: #0f172a; --muted: #64748b; --shadow: rgba(15,23,42,0.12); --input: #fff;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0; font-family: "Segoe UI", system-ui, -apple-system, sans-serif; color: var(--text); min-height: 100vh;
+      background:
+        radial-gradient(circle at top left, rgba(16,185,129,0.25), transparent 35%),
+        radial-gradient(circle at top right, rgba(56,189,248,0.18), transparent 32%),
+        linear-gradient(135deg, var(--bg), var(--bg-soft));
+      transition: background .3s, color .3s;
+    }
+    button { font: inherit; }
+    .page { max-width: 1320px; margin: 0 auto; padding: 32px 20px 48px; }
+
+    /* Topo */
+    .topbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 28px; }
+    .brand { display: flex; align-items: center; gap: 14px; }
+    .logo { width: 52px; height: 52px; border-radius: 18px; display: grid; place-items: center; background: linear-gradient(135deg, var(--primary), var(--accent)); box-shadow: 0 14px 32px var(--shadow); font-size: 26px; }
+    .brand-title { margin: 0; font-size: 1.02rem; font-weight: 800; letter-spacing: .03em; }
+    .brand-subtitle { margin: 4px 0 0; color: var(--muted); font-size: .85rem; }
+    .top-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+    .version, .ghost-btn, .user-chip { border: 1px solid var(--card-border); background: var(--card); color: var(--text); border-radius: 999px; padding: 10px 14px; font-size: .84rem; font-weight: 800; backdrop-filter: blur(14px); }
+    .version { color: var(--muted); }
+    .ghost-btn { cursor: pointer; box-shadow: 0 10px 26px var(--shadow); }
+    .ghost-btn:hover { border-color: rgba(16,185,129,.5); }
+    .user-chip { display: inline-flex; align-items: center; gap: 8px; }
+    .role { border-radius: 999px; padding: 3px 8px; font-size: .7rem; letter-spacing: .04em; }
+    .role-ADMIN { background: rgba(250,204,21,.18); color: var(--gold); }
+    .role-LIDER { background: rgba(56,189,248,.18); color: var(--accent); }
+    .role-COLABORADOR { background: rgba(16,185,129,.18); color: var(--primary); }
+
+    /* Hero */
+    .hero { border: 1px solid var(--card-border); background: linear-gradient(135deg, rgba(16,185,129,.22), rgba(56,189,248,.12)), var(--card); border-radius: 30px; padding: 36px; box-shadow: 0 24px 70px var(--shadow); backdrop-filter: blur(18px); margin-bottom: 22px; }
+    .hero .hello { margin: 0 0 6px; color: var(--muted); font-weight: 700; }
+    .hero h1 { margin: 0 0 12px; font-size: clamp(2rem, 4vw, 3.4rem); line-height: 1.05; letter-spacing: -.05em; }
+    .hero p { margin: 0; max-width: 760px; color: var(--muted); font-size: 1.04rem; line-height: 1.7; }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 22px; }
+    .pill { display: inline-flex; align-items: center; gap: 8px; border-radius: 999px; padding: 9px 13px; background: rgba(255,255,255,.1); border: 1px solid var(--card-border); font-size: .88rem; font-weight: 800; }
+
+    /* Busca e filtros */
+    .search { width: 100%; border: 1px solid var(--card-border); background: var(--card); color: var(--text); padding: 16px 18px; border-radius: 18px; outline: none; font-size: 1rem; backdrop-filter: blur(16px); box-shadow: 0 16px 42px var(--shadow); margin-bottom: 14px; }
+    .search::placeholder { color: var(--muted); }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+    .chip { border: 1px solid var(--card-border); background: var(--card); color: var(--muted); border-radius: 999px; padding: 8px 13px; font-size: .82rem; font-weight: 800; cursor: pointer; }
+    .chip.on, .chip:hover { color: var(--text); border-color: var(--primary); background: rgba(16,185,129,.18); }
+
+    /* Seções */
+    .section { margin-top: 28px; }
+    .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; gap: 12px; }
+    .section-title { margin: 0; font-size: 1.16rem; letter-spacing: -.02em; }
+    .section-count { color: var(--muted); font-size: .86rem; font-weight: 800; }
+
+    .quick-links { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 14px; }
+    .quick-link { text-decoration: none; color: var(--text); border: 1px solid var(--card-border); background: var(--card); border-radius: 20px; padding: 16px; display: flex; align-items: center; gap: 12px; box-shadow: 0 16px 42px var(--shadow); backdrop-filter: blur(16px); transition: transform .2s, border-color .2s; }
+    .quick-link:hover { transform: translateY(-4px); border-color: rgba(250,204,21,.5); }
+    .quick-link .star { width: 40px; height: 40px; border-radius: 14px; display: grid; place-items: center; background: rgba(250,204,21,.15); font-size: 20px; flex: 0 0 auto; }
+    .quick-link strong { display: block; font-size: .92rem; margin-bottom: 2px; }
+    .quick-link span { color: var(--muted); font-size: .78rem; font-weight: 700; }
+
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(285px, 1fr)); gap: 18px; }
+    .card { min-height: 230px; display: flex; flex-direction: column; justify-content: space-between; border: 1px solid var(--card-border); background: var(--card); border-radius: 24px; padding: 22px; backdrop-filter: blur(18px); box-shadow: 0 18px 52px var(--shadow); transition: transform .22s, box-shadow .22s, border-color .22s; position: relative; overflow: hidden; }
+    .card::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 4px; background: linear-gradient(90deg, var(--primary), var(--accent)); }
+    .card.destaque::before { background: linear-gradient(90deg, var(--gold), var(--primary)); }
+    .card:hover { transform: translateY(-6px); box-shadow: 0 26px 70px var(--shadow); border-color: rgba(16,185,129,.45); }
+    .card-top { display: flex; align-items: flex-start; gap: 14px; padding-right: 30px; }
+    .icon { width: 46px; height: 46px; border-radius: 16px; display: grid; place-items: center; background: rgba(16,185,129,.16); font-size: 24px; flex: 0 0 auto; }
+    .card h3 { margin: 0 0 8px; font-size: 1.08rem; line-height: 1.3; }
+    .card p { margin: 0; color: var(--muted); font-size: .92rem; line-height: 1.55; }
+    .fav-btn { position: absolute; top: 16px; right: 14px; border: 0; background: transparent; color: var(--muted); font-size: 1.35rem; cursor: pointer; line-height: 1; padding: 4px; }
+    .fav-btn.on { color: var(--gold); }
+    .fav-btn:hover { transform: scale(1.15); }
+    .meta { display: flex; gap: 8px; flex-wrap: wrap; margin: 18px 0; }
+    .tag { border: 1px solid var(--card-border); border-radius: 999px; padding: 6px 9px; color: var(--muted); font-size: .76rem; font-weight: 800; }
+    .tag.ok { color: var(--primary); } .tag.off { color: var(--danger); }
+
+    .btn { display: inline-flex; justify-content: center; align-items: center; gap: 8px; width: 100%; text-decoration: none; border: 0; cursor: pointer; border-radius: 14px; padding: 13px 16px; color: #fff; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); font-weight: 900; font-size: .93rem; transition: transform .2s, filter .2s; }
+    .btn:hover { transform: translateY(-2px); filter: brightness(1.05); }
+    .btn:disabled { opacity: .6; cursor: wait; transform: none; }
+    .btn.small { width: auto; padding: 10px 14px; font-size: .85rem; }
+    .btn-sec { border: 1px solid var(--card-border); background: transparent; color: var(--text); border-radius: 14px; padding: 12px 16px; font-weight: 800; cursor: pointer; }
+    .link-btn { border: 0; background: transparent; color: var(--accent); font-weight: 800; cursor: pointer; padding: 4px 6px; }
+
+    .empty { padding: 28px; border: 1px dashed var(--card-border); border-radius: 20px; color: var(--muted); text-align: center; margin-top: 18px; }
+
+    /* Administração */
+    .tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
+    .stats { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 14px; margin-bottom: 22px; }
+    .stat { border: 1px solid var(--card-border); background: var(--card); border-radius: 20px; padding: 18px; box-shadow: 0 16px 42px var(--shadow); }
+    .stat b { display: block; font-size: 1.8rem; letter-spacing: -.03em; }
+    .stat span { color: var(--muted); font-size: .82rem; font-weight: 700; }
+    .panel { border: 1px solid var(--card-border); background: var(--card); border-radius: 24px; padding: 20px; box-shadow: 0 18px 52px var(--shadow); backdrop-filter: blur(18px); }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+    th, td { text-align: left; padding: 11px 10px; border-bottom: 1px solid var(--card-border); vertical-align: middle; }
+    th { color: var(--muted); font-size: .76rem; text-transform: uppercase; letter-spacing: .05em; }
+    tr.inativo td { opacity: .5; }
+    .rank { display: flex; flex-direction: column; gap: 10px; }
+    .rank-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; font-size: .9rem; }
+    .bar { grid-column: 1 / -1; height: 6px; border-radius: 99px; background: linear-gradient(90deg, var(--primary), var(--accent)); }
+    .two-col { display: grid; grid-template-columns: 1fr 2fr; gap: 18px; }
+
+    /* Modal */
+    .modal { position: fixed; inset: 0; background: rgba(2,6,23,.65); display: grid; place-items: center; padding: 16px; z-index: 50; backdrop-filter: blur(4px); }
+    .modal.hidden { display: none; }
+    .modal-box { width: 100%; max-width: 560px; max-height: 92vh; overflow-y: auto; background: var(--bg-soft); border: 1px solid var(--card-border); border-radius: 24px; padding: 24px; box-shadow: 0 30px 80px rgba(0,0,0,.5); }
+    .modal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+    .modal-head h3 { margin: 0; }
+    .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+    .field label { font-size: .82rem; font-weight: 800; color: var(--muted); }
+    .field input[type=text], .field input[type=url], .field input[type=email], .field textarea, .field select { width: 100%; border: 1px solid var(--card-border); background: var(--input); color: var(--text); border-radius: 12px; padding: 11px 12px; font: inherit; outline: none; }
+    .field textarea { min-height: 80px; resize: vertical; }
+    .field input:focus, .field textarea:focus, .field select:focus { border-color: var(--primary); }
+    .field.check { flex-direction: row; align-items: center; gap: 10px; }
+    .help { font-size: .76rem; color: var(--muted); line-height: 1.5; }
+    .sugs { display: flex; flex-wrap: wrap; gap: 6px; }
+    .sugs .chip { padding: 5px 10px; font-size: .74rem; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 8px; }
+    .modal-actions .btn { width: auto; }
+
+    .toast { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%) translateY(120px); background: var(--bg-soft); border: 1px solid var(--card-border); color: var(--text); padding: 12px 18px; border-radius: 14px; font-weight: 700; box-shadow: 0 16px 40px var(--shadow); transition: transform .3s; z-index: 60; max-width: 90vw; }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+    .toast.erro { border-color: var(--danger); }
+
+    footer { color: var(--muted); text-align: center; font-size: .82rem; margin-top: 40px; line-height: 1.8; }
+
+    @media (max-width: 880px) { .quick-links, .stats { grid-template-columns: repeat(2, minmax(0,1fr)); } .two-col { grid-template-columns: 1fr; } }
+    @media (max-width: 760px) { .topbar { flex-direction: column; align-items: flex-start; } .top-actions { justify-content: flex-start; } .hero { padding: 26px 22px; } }
+    @media (max-width: 520px) { .quick-links { grid-template-columns: 1fr; } .card { min-height: auto; } }
+  </style>
+</head>
+
+<body>
+  <main class="page">
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo">🚀</div>
+        <div>
+          <p class="brand-title">Portal Executivo de Gestão</p>
+          <p class="brand-subtitle">Fiscal • Automações • Jira • Timesheet • Capacidade</p>
+        </div>
+      </div>
+      <div class="top-actions" id="topActions"></div>
+    </div>
+
+    <div id="app"></div>
+
+    <footer id="rodape"></footer>
+  </main>
+
+  <div id="modal" class="modal hidden">
+    <div class="modal-box">
+      <div class="modal-head">
+        <h3 id="modalTitle"></h3>
+        <button class="link-btn" data-close type="button">✕</button>
+      </div>
+      <form id="modalForm" autocomplete="off"></form>
+    </div>
+  </div>
+  <div id="toast" class="toast"></div>
+
+  <script>
+    const B = <?!= boot ?>;
+    const S = { busca: '', cat: 'Todas', fav: new Set(B.favoritos || []), view: 'portal', admin: null, adminTab: 'recursos' };
+
+    const $ = s => document.querySelector(s);
+    const esc = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const safeUrl = u => /^https?:\/\//i.test(u || '') ? u : '#';
+    const asList = v => Array.isArray(v) ? v.join(', ') : (v || '');
+
+    function call(fn, ...args) {
+      return new Promise((res, rej) => google.script.run.withSuccessHandler(res).withFailureHandler(rej)[fn](...args));
+    }
+
+    function toast(msg, tipo) {
+      const t = $('#toast');
+      t.textContent = msg;
+      t.className = 'toast show' + (tipo === 'erro' ? ' erro' : '');
+      clearTimeout(t._h);
+      t._h = setTimeout(() => t.className = 'toast', 3200);
+    }
+
+    /* ------------------------------ Topo ------------------------------ */
+    function renderTop() {
+      let html = `<span class="version">${esc(B.versao)} ⚡</span>`;
+      if (B.autorizado) {
+        const u = B.usuario;
+        html += `<span class="user-chip">👤 ${esc(u.nome || u.email)} <span class="role role-${esc(u.perfil)}">${esc(u.perfil)}</span></span>`;
+        if (u.admin) {
+          html += S.view === 'admin'
+            ? `<button class="ghost-btn" data-view="portal">🏠 Portal</button>`
+            : `<button class="ghost-btn" data-view="admin">🛠️ Administração</button>`;
+        }
+      }
+      html += `<button class="ghost-btn" data-theme-toggle>🌓 Tema</button>`;
+      $('#topActions').innerHTML = html;
+      $('#rodape').innerHTML = `Portal de Gestão e Automações ${esc(B.versao)}<br/>Conteúdo exibido de acordo com o seu perfil de acesso.`;
+    }
+
+    /* ------------------------------ Acesso negado ------------------------------ */
+    function renderNegado() {
+      $('#app').innerHTML = `
+        <section class="hero">
+          <h1>🔒 Acesso restrito</h1>
+          <p>${B.email
+            ? `Sua conta <b>${esc(B.email)}</b> ainda não tem acesso a este portal. Solicite a liberação a um administrador.`
+            : `Não foi possível identificar sua conta Google. Entre com a sua conta corporativa e recarregue a página.`}</p>
+        </section>`;
+    }
+
+    /* ------------------------------ Portal ------------------------------ */
+    function renderPortal() {
+      const u = B.usuario;
+      const primeiroNome = (u.nome || u.email).split(/[ @]/)[0];
+      const cats = new Set(B.recursos.map(r => r.categoria));
+      $('#app').innerHTML = `
+        <section class="hero">
+          <p class="hello">Olá, ${esc(primeiroNome)} 👋</p>
+          <h1>Central de Gestão e Automações</h1>
+          <p>Um ponto único para acessar controles de liderança, indicadores operacionais, planilhas de gestão e automações.</p>
+          <div class="hero-actions">
+            <span class="pill">✅ ${B.recursos.length} recursos disponíveis</span>
+            <span class="pill">🗂️ ${cats.size} categorias</span>
+            <span class="pill" id="pillFav">⭐ ${S.fav.size} favoritos</span>
+          </div>
+        </section>
+        <input id="searchInput" class="search" type="search" placeholder="🔍 Buscar por nome, categoria, descrição ou tag..." value="${esc(S.busca)}" />
+        <div id="portalBody"></div>`;
+      $('#searchInput').addEventListener('input', e => { S.busca = e.target.value; renderPortalBody(); });
+      renderPortalBody();
+    }
+
+    function quickLink(r) {
+      return `<a class="quick-link" href="${esc(safeUrl(r.link))}" target="_blank" rel="noopener" data-open="${esc(r.id)}">
+        <div class="star">${esc(r.icone)}</div>
+        <div><strong>${esc(r.nome)}</strong><span>${esc(r.categoria)}</span></div>
+      </a>`;
+    }
+
+    function cardHtml(r) {
+      const fav = S.fav.has(r.id);
+      return `<article class="card ${r.destaque ? 'destaque' : ''}">
+        <button class="fav-btn ${fav ? 'on' : ''}" data-fav="${esc(r.id)}" title="${fav ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}">${fav ? '★' : '☆'}</button>
+        <div>
+          <div class="card-top">
+            <div class="icon">${esc(r.icone)}</div>
+            <div><h3>${esc(r.nome)}</h3><p>${esc(r.descricao)}</p></div>
+          </div>
+          <div class="meta">
+            ${r.destaque ? '<span class="tag">🔥 Destaque</span>' : ''}
+            ${r.tags.map(t => `<span class="tag">${esc(t)}</span>`).join('')}
+          </div>
+        </div>
+        <a class="btn" href="${esc(safeUrl(r.link))}" target="_blank" rel="noopener" data-open="${esc(r.id)}">Abrir recurso →</a>
+      </article>`;
+    }
+
+    function secao(titulo, sub, corpo) {
+      return `<section class="section"><div class="section-header"><h2 class="section-title">${titulo}</h2><span class="section-count">${sub}</span></div>${corpo}</section>`;
+    }
+
+    function renderPortalBody() {
+      const recs = B.recursos;
+      const termo = S.busca.toLowerCase().trim();
+      const cats = [...new Set(recs.map(r => r.categoria))].sort();
+      const livre = !termo && S.cat === 'Todas';
+
+      let html = `<div class="chips">${['Todas', ...cats].map(c =>
+        `<button class="chip ${S.cat === c ? 'on' : ''}" data-cat="${esc(c)}">${esc(c)}</button>`).join('')}</div>`;
+
+      if (livre) {
+        const favs = recs.filter(r => S.fav.has(r.id));
+        if (favs.length) html += secao('⭐ Meus favoritos', 'Acesso rápido', `<div class="quick-links">${favs.map(quickLink).join('')}</div>`);
+        const dest = recs.filter(r => r.destaque && !S.fav.has(r.id));
+        if (dest.length) html += secao('🔥 Destaques', 'Recomendados pela gestão', `<div class="quick-links">${dest.map(quickLink).join('')}</div>`);
+      }
+
+      const visiveis = recs.filter(r => {
+        if (S.cat !== 'Todas' && r.categoria !== S.cat) return false;
+        if (!termo) return true;
+        return [r.nome, r.categoria, r.descricao, ...r.tags].join(' ').toLowerCase().includes(termo);
+      });
+
+      if (!visiveis.length) {
+        html += `<div class="empty">${recs.length ? 'Nenhum recurso encontrado para a busca informada.' : 'Ainda não há recursos liberados para o seu perfil.'}</div>`;
+      } else {
+        const grupos = {};
+        visiveis.forEach(r => (grupos[r.categoria] = grupos[r.categoria] || []).push(r));
+        Object.keys(grupos).sort().forEach(cat => {
+          html += secao(esc(cat), `${grupos[cat].length} recurso(s)`, `<div class="grid">${grupos[cat].map(cardHtml).join('')}</div>`);
+        });
+      }
+
+      $('#portalBody').innerHTML = html;
+      const pill = $('#pillFav');
+      if (pill) pill.textContent = `⭐ ${S.fav.size} favoritos`;
+    }
+
+    function alternarFav(id) {
+      const tinha = S.fav.has(id);
+      tinha ? S.fav.delete(id) : S.fav.add(id);
+      renderPortalBody();
+      call('alternarFavorito', id)
+        .then(lista => { S.fav = new Set(lista); })
+        .catch(() => {
+          tinha ? S.fav.add(id) : S.fav.delete(id);
+          renderPortalBody();
+          toast('Não foi possível salvar o favorito.', 'erro');
+        });
+    }
+
+    /* ------------------------------ Administração ------------------------------ */
+    async function renderAdmin() {
+      $('#app').innerHTML = `
+        <section class="hero">
+          <p class="hello">Área do administrador</p>
+          <h1>🛠️ Administração do Portal</h1>
+          <p>Cadastre recursos, defina quem enxerga cada um e gerencie os líderes com acesso.</p>
+        </section>
+        <div class="tabs">
+          ${[['recursos', '📦 Recursos'], ['usuarios', '👥 Usuários e perfis'], ['auditoria', '📈 Uso e auditoria']].map(([k, l]) =>
+            `<button class="chip ${S.adminTab === k ? 'on' : ''}" data-tab="${k}">${l}</button>`).join('')}
+        </div>
+        <div id="adminBody"><div class="empty">Carregando dados…</div></div>`;
+      try {
+        if (!S.admin) S.admin = await call('adminDados');
+        renderAdminBody();
+      } catch (err) {
+        $('#adminBody').innerHTML = `<div class="empty">Erro ao carregar: ${esc(err.message || err)}</div>`;
+      }
+    }
+
+    function renderAdminBody() {
+      const A = S.admin;
+      const ativos = A.recursos.filter(r => r.ativo).length;
+      const usuariosAtivos = A.usuarios.filter(u => u.ativo);
+      const lideres = usuariosAtivos.filter(u => u.perfil !== 'COLABORADOR').length;
+      const aberturas = A.log.filter(l => l.acao === 'ABRIR_RECURSO').length;
+
+      let html = `<div class="stats">
+        <div class="stat"><b>${ativos}/${A.recursos.length}</b><span>Recursos ativos</span></div>
+        <div class="stat"><b>${usuariosAtivos.length}</b><span>Usuários ativos</span></div>
+        <div class="stat"><b>${lideres}</b><span>Líderes e admins</span></div>
+        <div class="stat"><b>${aberturas}</b><span>Aberturas recentes</span></div>
+      </div>`;
+
+      if (S.adminTab === 'recursos') {
+        html += `<div class="panel">
+          <div class="section-header"><h2 class="section-title">Recursos</h2><button class="btn small" data-new-rec>+ Novo recurso</button></div>
+          <div class="table-wrap"><table>
+            <thead><tr><th></th><th>Nome</th><th>Categoria</th><th>Quem vê</th><th>Status</th><th></th></tr></thead>
+            <tbody>${A.recursos.map(r => `
+              <tr class="${r.ativo ? '' : 'inativo'}">
+                <td>${esc(r.icone)}</td>
+                <td><b>${esc(r.nome)}</b>${r.destaque ? ' 🔥' : ''}</td>
+                <td>${esc(r.categoria)}</td>
+                <td>${r.acesso.length ? r.acesso.map(a => `<span class="tag">${esc(a)}</span>`).join(' ') : '<span class="tag">Todos</span>'}</td>
+                <td>${r.ativo ? '<span class="tag ok">Ativo</span>' : '<span class="tag off">Inativo</span>'}</td>
+                <td><button class="link-btn" data-edit-rec="${esc(r.id)}">Editar</button></td>
+              </tr>`).join('')}</tbody>
+          </table></div></div>`;
+      }
+
+      if (S.adminTab === 'usuarios') {
+        html += `<div class="panel">
+          <div class="section-header"><h2 class="section-title">Usuários e perfis</h2><button class="btn small" data-new-user>+ Novo usuário</button></div>
+          <p class="help">ADMIN gerencia o portal · LIDER vê recursos de liderança · COLABORADOR vê apenas o que for liberado para todos ou para os seus grupos.</p>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Nome</th><th>E-mail</th><th>Perfil</th><th>Grupos</th><th>Status</th><th></th></tr></thead>
+            <tbody>${A.usuarios.map(u => `
+              <tr class="${u.ativo ? '' : 'inativo'}">
+                <td><b>${esc(u.nome || '—')}</b></td>
+                <td>${esc(u.email)}</td>
+                <td><span class="role role-${esc(u.perfil)}">${esc(u.perfil)}</span></td>
+                <td>${u.grupos.map(g => `<span class="tag">${esc(g)}</span>`).join(' ') || '—'}</td>
+                <td>${u.ativo ? '<span class="tag ok">Ativo</span>' : '<span class="tag off">Inativo</span>'}</td>
+                <td><button class="link-btn" data-edit-user="${esc(u.email)}">Editar</button></td>
+              </tr>`).join('')}</tbody>
+          </table></div></div>`;
+      }
+
+      if (S.adminTab === 'auditoria') {
+        const max = A.ranking.length ? A.ranking[0].total : 1;
+        html += `<div class="two-col">
+          <div class="panel">
+            <h2 class="section-title" style="margin-bottom:14px">🏆 Mais acessados</h2>
+            <div class="rank">${A.ranking.length ? A.ranking.map(r => `
+              <div class="rank-row"><span>${esc(r.nome)}</span><b>${r.total}</b><div class="bar" style="width:${Math.max(6, r.total / max * 100)}%"></div></div>`).join('')
+              : '<span class="help">Ainda sem aberturas registradas.</span>'}</div>
+          </div>
+          <div class="panel">
+            <h2 class="section-title" style="margin-bottom:14px">🧾 Atividade recente</h2>
+            <div class="table-wrap"><table>
+              <thead><tr><th>Data</th><th>Usuário</th><th>Ação</th><th>Detalhe</th></tr></thead>
+              <tbody>${A.log.slice(0, 120).map(l => `
+                <tr><td>${esc(l.data)}</td><td>${esc(l.email)}</td><td><span class="tag ${l.acao === 'ACESSO_NEGADO' ? 'off' : ''}">${esc(l.acao)}</span></td><td>${esc(l.detalhe)}</td></tr>`).join('')}</tbody>
+            </table></div>
+          </div>
+        </div>`;
+      }
+
+      $('#adminBody').innerHTML = html;
+    }
+
+    async function recarregarTudo() {
+      const [admin, portal] = await Promise.all([call('adminDados'), call('portalDados')]);
+      S.admin = admin;
+      B.recursos = portal.recursos;
+      S.fav = new Set(portal.favoritos);
+      renderAdminBody();
+    }
+
+    function formRecurso(r) {
+      const A = S.admin;
+      abrirModal(r ? 'Editar recurso' : 'Novo recurso', [
+        { k: 'nome', l: 'Nome', req: true },
+        { k: 'categoria', l: 'Categoria', list: A.categorias },
+        { k: 'icone', l: 'Ícone (emoji)' },
+        { k: 'descricao', l: 'Descrição', t: 'textarea' },
+        { k: 'link', l: 'Link', t: 'url', req: true },
+        { k: 'tags', l: 'Tags (separadas por vírgula)' },
+        { k: 'acesso', l: 'Quem pode ver', sug: ['TODOS', ...A.perfis, ...A.grupos],
+          help: 'Vazio ou TODOS = todos os usuários. Um perfil (ex.: LIDER) libera para esse perfil e os superiores. Também aceita grupos e e-mails, separados por vírgula.' },
+        { k: 'destaque', l: 'Mostrar em Destaques', t: 'check' },
+        { k: 'ativo', l: 'Ativo', t: 'check' }
+      ], r || { ativo: true, icone: '🔗' }, async dados => {
+        dados.id = r ? r.id : '';
+        await call('adminSalvarRecurso', dados);
+        await recarregarTudo();
+        toast('Recurso salvo ✅');
+      });
+    }
+
+    function formUsuario(u) {
+      const A = S.admin;
+      abrirModal(u ? 'Editar usuário' : 'Novo usuário', [
+        { k: 'email', l: 'E-mail corporativo', t: 'email', req: true, ro: !!u },
+        { k: 'nome', l: 'Nome' },
+        { k: 'perfil', l: 'Perfil', t: 'select', opts: A.perfis },
+        { k: 'grupos', l: 'Grupos / times (separados por vírgula)', sug: A.grupos,
+          help: 'Use grupos para liberar recursos a um time específico (ex.: Fiscal, Jira).' },
+        { k: 'ativo', l: 'Ativo', t: 'check' }
+      ], u || { perfil: 'LIDER', ativo: true }, async dados => {
+        dados.novo = !u;
+        await call('adminSalvarUsuario', dados);
+        await recarregarTudo();
+        toast('Usuário salvo ✅');
+      });
+    }
+
+    /* ------------------------------ Modal genérico ------------------------------ */
+    function campoHtml(c, v) {
+      const id = 'f_' + c.k;
+      if (c.t === 'check') {
+        return `<div class="field check"><input type="checkbox" id="${id}" name="${c.k}" ${v ? 'checked' : ''}/><label for="${id}">${esc(c.l)}</label></div>`;
+      }
+      let input;
+      if (c.t === 'textarea') input = `<textarea id="${id}" name="${c.k}">${esc(v)}</textarea>`;
+      else if (c.t === 'select') input = `<select id="${id}" name="${c.k}">${c.opts.map(o => `<option ${o === v ? 'selected' : ''}>${esc(o)}</option>`).join('')}</select>`;
+      else input = `<input type="${c.t || 'text'}" id="${id}" name="${c.k}" value="${esc(asList(v))}" ${c.req ? 'required' : ''} ${c.ro ? 'readonly' : ''} ${c.list ? `list="dl_${c.k}"` : ''}/>`
+        + (c.list ? `<datalist id="dl_${c.k}">${c.list.map(o => `<option value="${esc(o)}">`).join('')}</datalist>` : '');
+      const sugs = c.sug && c.sug.length
+        ? `<div class="sugs">${c.sug.map(s => `<button type="button" class="chip" data-sug="${esc(s)}" data-alvo="${id}">+ ${esc(s)}</button>`).join('')}</div>` : '';
+      return `<div class="field"><label for="${id}">${esc(c.l)}</label>${input}${sugs}${c.help ? `<span class="help">${esc(c.help)}</span>` : ''}</div>`;
+    }
+
+    function abrirModal(titulo, campos, valores, onSalvar) {
+      $('#modalTitle').textContent = titulo;
+      const form = $('#modalForm');
+      form.innerHTML = campos.map(c => campoHtml(c, valores[c.k])).join('') +
+        `<div class="modal-actions"><button type="button" class="btn-sec" data-close>Cancelar</button><button type="submit" class="btn">Salvar</button></div>`;
+      form.onsubmit = async e => {
+        e.preventDefault();
+        const dados = {};
+        campos.forEach(c => { const el = form.elements[c.k]; dados[c.k] = c.t === 'check' ? el.checked : el.value; });
+        const btn = form.querySelector('button[type=submit]');
+        btn.disabled = true; btn.textContent = 'Salvando…';
+        try { await onSalvar(dados); fecharModal(); }
+        catch (err) { toast(err.message || String(err), 'erro'); }
+        finally { btn.disabled = false; btn.textContent = 'Salvar'; }
+      };
+      $('#modal').classList.remove('hidden');
+    }
+    function fecharModal() { $('#modal').classList.add('hidden'); }
+
+    /* ------------------------------ Eventos ------------------------------ */
+    document.addEventListener('click', e => {
+      if (e.target.id === 'modal') return fecharModal();
+      const t = e.target.closest('[data-fav],[data-open],[data-cat],[data-view],[data-theme-toggle],[data-tab],[data-edit-rec],[data-edit-user],[data-new-rec],[data-new-user],[data-close],[data-sug]');
+      if (!t) return;
+      const d = t.dataset;
+
+      if (d.fav) return alternarFav(d.fav);
+      if (d.open) { call('registrarAcesso', d.open).catch(() => {}); return; }
+      if (d.cat !== undefined) { S.cat = d.cat; return renderPortalBody(); }
+      if (d.view) { S.view = d.view; renderTop(); return S.view === 'admin' ? renderAdmin() : renderPortal(); }
+      if (t.hasAttribute('data-theme-toggle')) {
+        document.body.classList.toggle('light');
+        try { localStorage.setItem('portal-theme', document.body.classList.contains('light') ? 'light' : 'dark'); } catch (_) {}
+        return;
+      }
+      if (d.tab) { S.adminTab = d.tab; return renderAdmin(); }
+      if (d.editRec) return formRecurso(S.admin.recursos.find(r => r.id === d.editRec));
+      if (d.editUser) return formUsuario(S.admin.usuarios.find(u => u.email === d.editUser));
+      if (t.hasAttribute('data-new-rec')) return formRecurso(null);
+      if (t.hasAttribute('data-new-user')) return formUsuario(null);
+      if (t.hasAttribute('data-close')) return fecharModal();
+      if (d.sug) {
+        const alvo = document.getElementById(d.alvo);
+        const itens = alvo.value.split(',').map(s => s.trim()).filter(Boolean);
+        if (!itens.some(i => i.toUpperCase() === d.sug.toUpperCase())) itens.push(d.sug);
+        alvo.value = itens.join(', ');
+      }
+    });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') fecharModal(); });
+
+    /* ------------------------------ Início ------------------------------ */
+    try { if (localStorage.getItem('portal-theme') === 'light') document.body.classList.add('light'); } catch (_) {}
+    renderTop();
+    B.autorizado ? renderPortal() : renderNegado();
+  </script>
+</body>
+</html>
